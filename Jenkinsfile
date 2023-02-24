@@ -12,6 +12,7 @@ pipeline {
     gitSshaddress = 'git@github.com:ojwsakin/sb_code.git'
     gitCredential = 'git_cre' // github credential 생성시의 ID
     dockerHubRegistry = 'sakin1/sbimage'
+    dockerHubRegistryCredential = 'docker_cre' // docker credentaial 생성 시의 ID
   }
 
   stages {
@@ -55,6 +56,24 @@ pipeline {
         }
         success {
           echo 'docker image build success'
+        }
+      }
+    }
+    stage('Docker image push') {
+      steps {
+        withDockerRegistry(credentialsId: dockerHubRegistryCredential, url: '') {
+          // withDockerRegistry : docker pipeline 플러그인 설치시 사용가능.
+          // dockerHubRegistryCredential : environment에서 선언한 docker_cre  
+            sh "docker push ${dockerHubRegistry}:${currentBuild.number}"
+            sh "docker push ${dockerHubRegistry}:latest"
+        }
+      }
+      post {
+        failure {
+          echo 'docker image push failure'
+        }
+        success {
+          echo 'docker image push success'
         }
       }
     }
